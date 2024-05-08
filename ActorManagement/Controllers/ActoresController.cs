@@ -15,10 +15,10 @@ namespace ActorManagement.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ActorsResponses>> Actors(string nameDescription, int minRank = 0, int maxRank, int page = 1, int pageSize = 10)
+        public async Task<ActionResult<ActorsResponses>> Actors(string nameDescription, int maxRank, int minRank = 0, int page = 1, int pageSize = 10)
          {
             ActorsResponses actorRespone = new ActorsResponses();
-            actorRespone.Actors = _actorService.GetAllActorsAsync(nameDescription, minRank, maxRank , page , pageSize).Result;
+            actorRespone = _actorService.GetAllActorsAsync(nameDescription, maxRank, minRank, page , pageSize).Result;
             return Ok(actorRespone);
         }
 
@@ -42,16 +42,16 @@ namespace ActorManagement.Controllers
             }
 
             var createdActor = await _actorService.AddActorAsync(actor);
-            return CreatedAtRoute("Actor", new { id = createdActor.Id }, createdActor);
+            return CreatedAtRoute("Actor", new { id = createdActor.Actor.Id }, createdActor);
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteActor(string id)
         {
-            ActorResponse response = _actorService.DeleteActorAsync(id);
+            ActorResponse response = _actorService.DeleteActorAsync(id).Result;
             if (!response.IsSuccess)
             {
-                response.TraceId = id;
+                return StatusCode(response.StatusCode, response);
             }
             return Ok(response);
         }

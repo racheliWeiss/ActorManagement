@@ -2,12 +2,13 @@
 using ActorManagement.Models;
 using ActorManagement.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 
 namespace ActorManagement.Services
 {
-  
 
-    public class ActorService :IActorService
+
+    public class ActorService : IActorService
     {
         private readonly ActorDbContext _context;
 
@@ -15,62 +16,78 @@ namespace ActorManagement.Services
         {
             _context = context;
         }
-        public async Task PreloadActorsFromIMDb()
-        {
-            var actors = await Scraper.ScrapeActorsFromIMDb();
 
-            // Check if any actors exist in the database before preloading
-            if (!_context.Actors.Any())
-            {
-                _context.Actors.AddRange(actors);
-                await _context.SaveChangesAsync();
-            }
-       
-        }
-
-        public async Task<Actor> AddActorAsync(Actor actor)
+        public async Task<ActorResponse> AddActorAsync(Actor actor)
         {
-            const string ACTOR_ID = "1";
-            if (actor == null)
+            ActorResponse response = new ActorResponse();
+            try
             {
-                throw new ArgumentNullException(nameof(actor));
+                const string ACTOR_ID = "1";
+                if (actor == null)
+                {
+                    throw new ArgumentNullException(nameof(actor));
+                }
+                actor.Id = _context.Actors.Count() > 0 ? _context.Actors.Max(a => a.Id) + 1 : ACTOR_ID;
+                _context.Add(actor);
+                _context.SaveChanges();
+
             }
-            actor.Id = _context.Actors.Count() > 0 ? _context.Actors.Max(a => a.Id) + 1 : ACTOR_ID;
-            _context.Add(actor);
-            _context.SaveChanges();
-            return actor;
+            catch (Exception ex) { }
+            {
+                response.Errors.Add(new Error { Code = ErrorCodes.NotFound, Message = "Actor not found" });
+                response.StatusCode = (int)HttpStatusCode.NotFound;
+            }
+
+            return response;
         }
 
         public async Task<ActorResponse> DeleteActorAsync(string id)
         {
             ActorResponse response = new ActorResponse();
-            var existingActor = GetActorByIdAsync(id);
-            if (existingActor != null)
+            try
             {
-                _context.Remove(existingActor);
-                response.IsSuccess = true;
+                var existingActor = await GetActorByIdAsync(id);
+                if (existingActor != null)
+                {
+                    _context.Remove(existingActor);
+                    await _context.SaveChangesAsync(); 
+                    response.IsSuccess = true;
+                }
+                else
+                {
+                    response.Errors.Add(new Error { Code = ErrorCodes.NotFound, Message = "Actor not found" });
+                    response.StatusCode = (int)HttpStatusCode.NotFound;
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Errors.Add(new Error { Code = ErrorCodes.BadRequest, Message = "Failed to delete actor", AdditionalInfo = ex.Message });
+                response.StatusCode = (int)HttpStatusCode.BadRequest;
             }
             return response;
         }
 
-    
-        public async Task<List<Actor>> GetAllActorsAsync(string nameDescription = null, int minRank = 0, int maxRank = int.MaxValue, int page = 1, int pageSize = 5)
+        public async Task<ActorsResponses> GetAllActorsAsync(string nameDescription, int maxRank = int.MaxValue, int minRank = 0, int page = 1, int pageSize = 5)
         {
-            var query = _context.Actors.AsQueryable();
-
-            // Apply filters based on parameters
-            if (!string.IsNullOrEmpty(nameDescription))
+            ActorsResponses response = new ActorsResponses();
+            try
             {
-                query = query.Where(a => a.Name.Contains(nameDescription));
+                var query = _context.Actors.AsQueryable();
+                if (!string.IsNullOrEmpty(nameDescription))
+                {
+                    query = query.Where(a => a.Name.Contains(nameDescription));
+                }
+                query = query.Where(a => a.Rank >= minRank && a.Rank <= maxRank);
+                int skip = (page - 1) * pageSize;
+                query = query.Skip(skip).Take(pageSize);
+                response.Actors = await query.ToListAsync();
             }
-
-            query = query.Where(a => a.Rank >= minRank && a.Rank <= maxRank);
-
-            // Implement paging logic (assuming page starts from 1)
-            int skip = (page - 1) * pageSize;
-            query = query.Skip(skip).Take(pageSize);
-
-            return await query.ToListAsync();
+            catch(Exception ex)
+            {
+                response.Errors.Add(new Error { Code = ErrorCodes.BadRequest, Message = "Failed to delete actor", AdditionalInfo = ex.Message });
+                response.StatusCode = (int)HttpStatusCode.BadRequest;
+            }
+            return response;
         }
 
         public async Task<Actor> GetActorByIdAsync(string id)
@@ -78,25 +95,31 @@ namespace ActorManagement.Services
             return await _context.Actors.FindAsync(id);
         }
 
-        public async Task<Actor> UpdateActorAsync(Actor actor)
+        public async Task<ActorResponse> UpdateActorAsync(Actor actor)
         {
-            var existingActor = await GetActorByIdAsync(actor.Id);
-            if (existingActor == null)
+            ActorResponse response = new ActorResponse();
+            try
             {
-                throw new ArgumentException("Actor not found", nameof(actor.Id));
+                Actor existingActor = await GetActorByIdAsync(actor.Id);
+                if (existingActor == null)
+                {
+                    throw new ArgumentException("Actor not found", nameof(actor.Id));
+                }
+                existingActor.Name = actor.Name;
+                existingActor.Details = actor.Details;
+                existingActor.Type = actor.Type;
+                existingActor.Rank = actor.Rank;
+                existingActor.Source = actor.Source;
+                response.Actor = existingActor;
+                _context.Actors.Update(existingActor);
+                await _context.SaveChangesAsync();
             }
-
-            // Update actor details
-            existingActor.Name = actor.Name;
-            existingActor.Details = actor.Details;
-            existingActor.Type = actor.Type;
-            existingActor.Rank = actor.Rank;
-            existingActor.Source = actor.Source;
-
-            _context.Actors.Update(existingActor);
-            await _context.SaveChangesAsync();
-
-            return existingActor;
+            catch (Exception ex)
+            {
+                response.Errors.Add(new Error { Code = ErrorCodes.BadRequest, Message = "Failed to delete actor", AdditionalInfo = ex.Message });
+                response.StatusCode = (int)HttpStatusCode.BadRequest;
+            }
+            return re;
         }
     }
 }

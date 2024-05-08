@@ -14,15 +14,15 @@ builder.Services.AddDbContext<ActorDbContext>(options =>
         options.UseInMemoryDatabase("ActorDb"));
 builder.Services.AddScoped<ActorDbContext>();
 builder.Services.AddScoped <IActorService, ActorService>();
-builder.Services.AddScoped<IScraperService, ImdbScraperService>();
+builder.Services.AddScoped<IScraperService, ScraperService>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
-    var actorService = scope.ServiceProvider.GetRequiredService<IActorService>();
-    await actorService.PreloadActorsFromIMDb();
+    var scraperService = scope.ServiceProvider.GetRequiredService<IScraperService>();
+    await scraperService.PreloadActors();
 }
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
