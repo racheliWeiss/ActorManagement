@@ -119,7 +119,7 @@ namespace ActorManagement.Services
                 response.Errors.Add(new Error { Code = ErrorCodes.BadRequest, Message = "Failed to delete actor", AdditionalInfo = ex.Message });
                 response.StatusCode = (int)HttpStatusCode.BadRequest;
             }
-            return re;
+            return response;
         }
     }
 }
