@@ -3,7 +3,7 @@ using HtmlAgilityPack;
 
 public static class Scraper
 {
-    public static async Task<List<Actor>> ScrapeActorsFromIMDb(string url )
+    public static async Task<List<Actor>> ScrapeActorsFromIMDb(string url)
     {
         var actors = new List<Actor>();
         //var url = config["IMDbSettings:Url"];
