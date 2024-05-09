@@ -28,7 +28,7 @@ namespace ActorManagement.Services
                     throw new ArgumentNullException(nameof(actor));
                 }
                 actor.Id = _context.Actors.Count() > 0 ? _context.Actors.Max(a => a.Id) + 1 : ACTOR_ID;
-                _context.Add(actor);
+                _context.Actors.Add(actor);
                 _context.SaveChanges();
 
             }

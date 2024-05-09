@@ -3,10 +3,10 @@ using HtmlAgilityPack;
 
 public static class Scraper
 {
-    public static async Task<List<Actor>> ScrapeActorsFromIMDb(IConfiguration config)
+    public static async Task<List<Actor>> ScrapeActorsFromIMDb(string url )
     {
         var actors = new List<Actor>();
-        var url = config.GetValue<string>("IMDbSettings:Url");
+        //var url = config["IMDbSettings:Url"];
         try
         {
             var httpClient = new HttpClient();
