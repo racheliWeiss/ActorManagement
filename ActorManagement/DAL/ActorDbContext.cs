@@ -9,8 +9,6 @@ namespace ActorManagement.Data
     {
         public ActorDbContext(DbContextOptions<ActorDbContext> options) : base(options)
         {
-           
-
         }
         public DbSet<Actor> Actors { get; set; }
     }

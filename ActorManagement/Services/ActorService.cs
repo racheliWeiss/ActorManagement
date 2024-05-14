@@ -30,14 +30,12 @@ namespace ActorManagement.Services
                 actor.Id = _context.Actors.Count() > 0 ? _context.Actors.Max(a => a.Id) + 1 : ACTOR_ID;
                 _context.Actors.Add(actor);
                 _context.SaveChanges();
-
             }
             catch (Exception ex) { }
             {
                 response.Errors.Add(new Error { Code = ErrorCodes.NotFound, Message = "Actor not found" });
                 response.StatusCode = (int)HttpStatusCode.NotFound;
             }
-
             return response;
         }
 

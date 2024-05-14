@@ -1,7 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using System;
-
-namespace ActorManagement.Models
+﻿namespace ActorManagement.Models
 {
     public class ActorResponse
     {

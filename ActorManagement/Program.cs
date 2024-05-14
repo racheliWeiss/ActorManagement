@@ -9,7 +9,6 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddDbContext<ActorDbContext>(options =>
         options.UseInMemoryDatabase("ActorDb"));
-
 builder.Services.AddScoped<ActorDbContext>();
 builder.Services.AddTransient <IActorService, ActorService>();
 builder.Services.AddScoped<IScraperService, ScraperService>();

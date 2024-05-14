@@ -6,17 +6,13 @@ public static class Scraper
     public static async Task<List<Actor>> ScrapeActorsFromIMDb(string url)
     {
         var actors = new List<Actor>();
-        //var url = config["IMDbSettings:Url"];
         try
         {
             var httpClient = new HttpClient();
             var html = await httpClient.GetStringAsync(url);
-
             var htmlDocument = new HtmlDocument();
             htmlDocument.LoadHtml(html);
-
             var actorNodes = htmlDocument.DocumentNode.SelectNodes("//div[@class='lister-item-content']");
-
             if (actorNodes != null)
             {
                 foreach (var actorNode in actorNodes)
@@ -42,7 +38,6 @@ public static class Scraper
                     }
                 }
             }
-
             else
             {
                 Console.WriteLine("No actors found on the IMDb page.");
@@ -52,14 +47,11 @@ public static class Scraper
         {
             Console.WriteLine($"Error occurred while scraping IMDb: {ex.Message}");
         }
-
         return actors;
     }
 
-
     private static string GetNumberIdFromHref(string href)
     {
-        // Extracting the part after the last '?' character
         int lastSlashIndex = href.LastIndexOf('?');
         if (lastSlashIndex >= 0 && lastSlashIndex < href.Length - 1)
         {
@@ -67,6 +59,5 @@ public static class Scraper
         }
         return null;
     }
-
 }
 

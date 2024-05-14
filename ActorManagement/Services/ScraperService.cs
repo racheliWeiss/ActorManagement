@@ -20,10 +20,7 @@ namespace ActorManagement.Services
 
         public async Task PreloadActors()
         {
-          
-
             var actors = await Scraper.ScrapeActorsFromIMDb(_settingsUrl.IMDbSettings);
-
             if (!_context.Actors.Any())
             {
                 _context.Actors.AddRange(actors);
